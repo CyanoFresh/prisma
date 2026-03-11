@@ -136,11 +136,15 @@ function mapDriverError(error: DatabaseError): MappedError {
         kind: 'TableDoesNotExist',
         table: error.message.split(' ').at(1)?.split('"').at(1),
       }
-    case '42703':
+    case '42703': {
+      const rawColumn = error.message.match(/^column (.+) does not exist$/)?.at(1)
       return {
         kind: 'ColumnNotFound',
-        column: error.message.split(' ').at(1)?.replaceAll('"', ''),
+        column: rawColumn?.startsWith('"')
+          ? rawColumn.replaceAll('""', '"').replace(/^"|"$/g, '')
+          : rawColumn,
       }
+    }
     case '42P04':
       return {
         kind: 'DatabaseAlreadyExists',

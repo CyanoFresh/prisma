@@ -146,6 +146,26 @@ describe('convertDriverError', () => {
     })
   })
 
+  it('should handle ColumnNotFound (42703) with quoted column name containing spaces', () => {
+    const error = { code: '42703', message: 'column "first name" does not exist', severity: 'ERROR' }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'ColumnNotFound',
+      column: 'first name',
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
+  it('should handle ColumnNotFound (42703) with quoted column name containing escaped quotes', () => {
+    const error = { code: '42703', message: 'column "a""b" does not exist', severity: 'ERROR' }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'ColumnNotFound',
+      column: 'a"b',
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
+  })
+
   it('should handle DatabaseAlreadyExists (42P04)', () => {
     const error = { code: '42P04', message: 'database "mydb" already exists', severity: 'ERROR' }
     expect(convertDriverError(error)).toEqual({
